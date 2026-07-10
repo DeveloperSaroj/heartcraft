@@ -1,7 +1,9 @@
 import React from 'react'
 
 // Animated SVG cake; colors come from the selected cake flavour.
-export default function Cake({ colors, lit = true }) {
+// Candles are individually tappable — `lit` is an array of booleans and
+// tapping a flame calls onBlow(index).
+export default function Cake({ colors, lit = [true, true, true], onBlow }) {
   const [c1, c2, c3] = colors
   return (
     <svg className="cake-svg" viewBox="0 0 300 260" width="260" height="225">
@@ -17,10 +19,22 @@ export default function Cake({ colors, lit = true }) {
       {[120, 150, 180].map((x, i) => (
         <g key={x}>
           <rect x={x - 4} y="80" width="8" height="36" rx="3" fill={i % 2 ? '#fff' : '#ffd166'} />
-          {lit && (
-            <g className={`flame flame-${i}`}>
+          {lit[i] ? (
+            <g
+              className={`flame flame-${i}`}
+              style={{ cursor: 'pointer', pointerEvents: 'all' }}
+              onClick={(e) => { e.stopPropagation(); onBlow?.(i) }}
+            >
+              {/* generous invisible hit area for small fingers */}
+              <circle cx={x} cy="68" r="20" fill="transparent" />
               <ellipse cx={x} cy="70" rx="6" ry="11" fill="#ffb703" />
               <ellipse cx={x} cy="72" rx="3" ry="6" fill="#fff3b0" />
+            </g>
+          ) : (
+            <g className="smoke">
+              <circle cx={x} cy="70" r="2.5" fill="rgba(255,255,255,0.5)" />
+              <circle cx={x + 3} cy="62" r="2" fill="rgba(255,255,255,0.35)" />
+              <circle cx={x - 2} cy="55" r="1.6" fill="rgba(255,255,255,0.25)" />
             </g>
           )}
         </g>
