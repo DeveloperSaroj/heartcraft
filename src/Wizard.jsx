@@ -4,6 +4,7 @@ import { viewerUrl } from './encode.js'
 import Viewer from './Viewer.jsx'
 import { saveWish } from './supabase.js'
 import { supabaseEnabled } from './config.js'
+import { trackEvent } from './analytics.js'
 import QRCode from 'qrcode'
 
 const MAX_PHOTOS = 5
@@ -334,6 +335,7 @@ export default function Wizard() {
       const su = `${base}#/w/${code}`
       setShortUrl(su)
       rememberWish(code, wish)
+      trackEvent('created', { occasion: wish.occasion, wishCode: code })
       return su
     } catch {
       setSaveError('Could not create short link — copied the long link instead (it works too!)')

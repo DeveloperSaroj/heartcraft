@@ -4,6 +4,7 @@ import Viewer from './Viewer.jsx'
 import MyWishes from './MyWishes.jsx'
 import { decodeWish } from './encode.js'
 import { loadWish } from './supabase.js'
+import { trackEvent } from './analytics.js'
 
 // Hash routing:
 //   #/w/<code>     — short link, wish stored in the database
@@ -35,7 +36,12 @@ export default function App() {
     let cancelled = false
     setStatus('loading')
     loadWish(route.code)
-      .then((w) => { if (!cancelled) { setRemoteWish(w); setStatus(w ? 'idle' : 'error') } })
+      .then((w) => {
+        if (cancelled) return
+        setRemoteWish(w)
+        setStatus(w ? 'idle' : 'error')
+        if (w) trackEvent('opened', { occasion: w.occasion, wishCode: route.code })
+      })
       .catch(() => { if (!cancelled) setStatus('error') })
     return () => { cancelled = true }
   }, [route])
