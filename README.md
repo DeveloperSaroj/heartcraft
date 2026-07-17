@@ -1,4 +1,4 @@
-# HeartCraft 💗
+# SmileHeart 💗
 
 Create and share animated surprise experiences — Birthday, Anniversary, Apology, Propose.
 

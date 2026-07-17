@@ -28,7 +28,7 @@ export default function MyWishes() {
   return (
     <div className="wizard">
       <header className="brand">
-        <img src="logo-full.png" alt="HeartCraft" className="brand-logo" />
+        <img src="logo-full.png" alt="SmileHeart" className="brand-logo" />
         <a className="mine-link" href="#">← Create a wish</a>
       </header>
       <div className="step-card">

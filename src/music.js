@@ -122,3 +122,25 @@ export function startMusic(occasion) {
 export function stopMusic() {
   stopFlag.stopped = true
 }
+
+// Short "pop!" — a burst of filtered noise, used when a balloon bursts.
+export function popSound() {
+  try {
+    ensureGraph()
+    if (ctx.state === 'suspended') ctx.resume()
+    const dur = 0.09
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length)
+    const src = ctx.createBufferSource()
+    src.buffer = buffer
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'bandpass'
+    filter.frequency.value = 900
+    filter.Q.value = 0.8
+    const gain = ctx.createGain()
+    gain.gain.value = 0.5
+    src.connect(filter).connect(gain).connect(ctx.destination)
+    src.start()
+  } catch { /* silent */ }
+}

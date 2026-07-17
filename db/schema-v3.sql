@@ -1,4 +1,4 @@
--- HeartCraft v3 — aggregate analytics (no personal data, DB-level only).
+-- SmileHeart v3 — aggregate analytics (no personal data, DB-level only).
 -- Run once in Supabase Dashboard → SQL Editor. (v1 and v2 must already be applied.)
 
 create table if not exists public.wish_events (

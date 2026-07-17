@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Wizard from './Wizard.jsx'
 import Viewer from './Viewer.jsx'
 import MyWishes from './MyWishes.jsx'
+import { PrivacyPolicy, TermsOfUse } from './Legal.jsx'
 import { decodeWish } from './encode.js'
 import { loadWish } from './supabase.js'
 import { trackEvent } from './analytics.js'
@@ -10,9 +11,12 @@ import { trackEvent } from './analytics.js'
 //   #/w/<code>     — short link, wish stored in the database
 //   #/view/<data>  — legacy/fallback, wish encoded in the URL itself
 //   #/mine         — creator dashboard
+//   #/privacy, #/terms — legal pages
 // Anything else opens the creator wizard.
 function parseHash() {
   if (window.location.hash === '#/mine') return { type: 'mine' }
+  if (window.location.hash === '#/privacy') return { type: 'privacy' }
+  if (window.location.hash === '#/terms') return { type: 'terms' }
   const short = window.location.hash.match(/^#\/w\/([A-Za-z0-9]+)$/)
   if (short) return { type: 'short', code: short[1] }
   const inline = window.location.hash.match(/^#\/view\/(.+)$/)
@@ -47,6 +51,8 @@ export default function App() {
   }, [route])
 
   if (route?.type === 'mine') return <MyWishes />
+  if (route?.type === 'privacy') return <PrivacyPolicy />
+  if (route?.type === 'terms') return <TermsOfUse />
   if (route?.type === 'short') {
     if (status === 'loading') {
       return <div className="app-status"><span className="brand-heart big">💗</span><p>Opening your surprise...</p></div>

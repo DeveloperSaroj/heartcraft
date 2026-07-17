@@ -1,4 +1,4 @@
--- HeartCraft v2 — run once in Supabase Dashboard → SQL Editor.
+-- SmileHeart v2 — run once in Supabase Dashboard → SQL Editor.
 -- (Adds recipient reactions; the v1 schema.sql must already be applied.)
 
 create table if not exists public.reactions (

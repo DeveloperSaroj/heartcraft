@@ -153,8 +153,6 @@ export default function Wizard() {
     wishes: [
       'May all your dreams come true ✨',
       'A year full of laughter 😄',
-      'Good health & great adventures 🌍',
-      'Success in everything you do 🏆',
       'Endless love & happiness 💖',
     ],
   })
@@ -233,11 +231,11 @@ export default function Wizard() {
       body: <CardGrid items={VIBES} value={wish.vibe} onPick={set('vibe')} />,
     },
     ...(wish.occasion === 'birthday' ? [{
-      title: 'Their 5 balloon wishes 🎈',
+      title: 'Their 3 balloon wishes 🎈',
       valid: wish.wishes.every((w) => w.trim()),
       body: (
         <>
-          <p className="field-hint">{wish.name || 'They'} will pop 5 balloons — each one reveals a wish. Make them yours!</p>
+          <p className="field-hint">{wish.name || 'They'} will pop 3 balloons — each one reveals a wish. Make them yours!</p>
           {wish.wishes.map((w, idx) => (
             <div className="wish-row" key={idx}>
               <span className="wish-balloon">🎈</span>
@@ -392,7 +390,7 @@ export default function Wizard() {
             <div className="qr-card" onClick={(e) => e.stopPropagation()}>
               <img src={qr} alt="QR code for this wish" />
               <p>Scan to open the surprise 💗</p>
-              <a className="btn primary" href={qr} download="heartcraft-qr.png">Download PNG</a>
+              <a className="btn primary" href={qr} download="smileheart-qr.png">Download PNG</a>
             </div>
           </div>
         )}
@@ -403,7 +401,7 @@ export default function Wizard() {
   return (
     <div className="wizard">
       <header className="brand">
-        <img src="logo-full.png" alt="HeartCraft — crafting beautiful wishes, delivering smiles" className="brand-logo" />
+        <img src="logo-full.png" alt="SmileHeart — crafting beautiful wishes, delivering smiles" className="brand-logo" />
         <a className="mine-link" href="#/mine">My wishes 📂</a>
       </header>
       <div className="progress">
@@ -425,6 +423,12 @@ export default function Wizard() {
           {last ? 'See Preview ✨' : 'Next →'}
         </button>
       </div>
+      <footer className="app-footer">
+        <span>🔒 Privacy-friendly — no accounts, no ads, no cookies.</span>
+        <span className="footer-links">
+          <a href="#/privacy">Privacy Policy</a> · <a href="#/terms">Terms of Use</a>
+        </span>
+      </footer>
     </div>
   )
 }

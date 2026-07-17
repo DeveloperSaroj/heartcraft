@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { CAKES, VIBES, OCCASION_COPY, BOX_MESSAGES, byId } from './options.js'
 import Cake from './Cake.jsx'
-import { startMusic, stopMusic } from './music.js'
+import { startMusic, stopMusic, popSound } from './music.js'
 import { sendReaction } from './supabase.js'
 import { supabaseEnabled } from './config.js'
 
@@ -184,6 +185,49 @@ function VibeBackdrop({ vibe }) {
   )
 }
 
+// Celebration burst when all candles go out: party poppers at the corners
+// and a shower of falling flowers.
+function FlowerShower() {
+  const petals = useMemo(
+    () =>
+      Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 1.2,
+        dur: 2.6 + Math.random() * 2.4,
+        size: 1 + Math.random() * 1.3,
+        glyph: ['🌸', '🌺', '🌼', '💮', '🌷', '🎊'][i % 6],
+        sway: (Math.random() * 40 - 20).toFixed(0),
+      })),
+    []
+  )
+  // Portal straight to <body> — several parent scenes animate transform/filter,
+  // which would otherwise re-scope position:fixed to that ancestor instead of
+  // the real viewport, breaking the top-to-bottom fall.
+  return createPortal(
+    <div className="flower-shower" aria-hidden>
+      <span className="popper popper-left">🎉</span>
+      <span className="popper popper-right">🎉</span>
+      {petals.map((p) => (
+        <span
+          key={p.id}
+          className="petal"
+          style={{
+            left: `${p.left}%`,
+            fontSize: `${p.size}rem`,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.dur}s`,
+            '--sway': `${p.sway}px`,
+          }}
+        >
+          {p.glyph}
+        </span>
+      ))}
+    </div>,
+    document.body
+  )
+}
+
 // Interactive cake: tap each flame (or blow into the mic) to put candles out.
 function CakeScene({ cake, line, onDone }) {
   const [lit, setLit] = useState([true, true, true])
@@ -235,12 +279,13 @@ function CakeScene({ cake, line, onDone }) {
 
   useEffect(() => {
     if (!allOut) return
-    const t = setTimeout(onDone, 1800)
+    const t = setTimeout(onDone, 5500) // linger so the flower shower can fully play
     return () => clearTimeout(t)
   }, [allOut, onDone])
 
   return (
     <div className="scene" onClick={(e) => e.stopPropagation()}>
+      {allOut && <FlowerShower />}
       <div className="cake-float"><Cake colors={cake.colors} lit={lit} onBlow={blow} /></div>
       {allOut ? (
         <p className="line pop">✨ Wish made! It’s on its way... ✨</p>
@@ -388,7 +433,7 @@ function VintageLetter({ text, voice, onDone }) {
         </div>
         {stage !== 'open' && (
           <button className="wax-seal" onClick={open} aria-label="open the letter">
-            <span>H♥C</span>
+            <span>S♥H</span>
           </button>
         )}
       </div>
@@ -688,8 +733,8 @@ export default function Viewer({ wish, code }) {
         ) : (
           <div className="scene" onClick={(e) => e.stopPropagation()}>
             <h1 className="headline pop">{copy.finale}</h1>
-            <p className="line fade-late made-with">Made with <span className="brand-heart">❤️</span> on HeartCraft</p>
-            <img src="symbol.png" alt="HeartCraft" className="finale-logo fade-late" />
+            <p className="line fade-late made-with">Made with <span className="brand-heart">❤️</span> on SmileHeart</p>
+            <img src="symbol.png" alt="SmileHeart" className="finale-logo fade-late" />
             <ReactionBar code={code} onSent={endExperience} />
           </div>
         )
@@ -713,6 +758,7 @@ function BalloonGame({ wishes, name, onDone }) {
   const pop = (idx) => (e) => {
     e.stopPropagation()
     if (popped.includes(idx)) return
+    popSound()
     setPopped((p) => [...p, idx])
     setLastWish(idx)
   }
@@ -725,7 +771,12 @@ function BalloonGame({ wishes, name, onDone }) {
         {wishes.map((w, idx) => (
           <div className="balloon-slot" key={idx}>
             {popped.includes(idx) ? (
-              <span className="balloon-burst">💥</span>
+              <span className="pop-burst" style={{ '--b-color': BALLOON_COLORS[idx % BALLOON_COLORS.length] }}>
+                <i className="pop-flash" />
+                {Array.from({ length: 8 }, (_, k) => (
+                  <i key={k} className="shard" style={{ '--a': `${k * 45}deg`, '--d': `${52 + (k % 3) * 16}px` }} />
+                ))}
+              </span>
             ) : (
               <button
                 className="balloon"
@@ -734,7 +785,12 @@ function BalloonGame({ wishes, name, onDone }) {
                 aria-label={`balloon ${idx + 1}`}
               >
                 <span className="balloon-body" />
-                <span className="balloon-string" />
+                <svg className="balloon-string" width="16" height="58" viewBox="0 0 16 58" aria-hidden>
+                  <path
+                    d="M8 0 C 13 9, 3 16, 8 25 C 13 34, 3 41, 8 50 C 10 54, 7 56, 8 58"
+                    fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="1.6" strokeLinecap="round"
+                  />
+                </svg>
               </button>
             )}
           </div>

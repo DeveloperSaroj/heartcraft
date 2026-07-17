@@ -1,4 +1,4 @@
--- HeartCraft — run once in Supabase Dashboard → SQL Editor.
+-- SmileHeart — run once in Supabase Dashboard → SQL Editor.
 
 create table if not exists public.wishes (
   id uuid primary key default gen_random_uuid(),
