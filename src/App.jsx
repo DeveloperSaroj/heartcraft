@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Wizard from './Wizard.jsx'
 import Viewer from './Viewer.jsx'
 import MyWishes from './MyWishes.jsx'
+import Splash from './Splash.jsx'
 import { PrivacyPolicy, TermsOfUse } from './Legal.jsx'
 import { decodeWish } from './encode.js'
 import { loadWish } from './supabase.js'
@@ -28,6 +29,17 @@ export default function App() {
   const [route, setRoute] = useState(parseHash)
   const [remoteWish, setRemoteWish] = useState(null)
   const [status, setStatus] = useState('idle') // idle | loading | error
+
+  // Intro splash: only on the creator page, and only the first load of a
+  // browser session (so navigating back from preview/legal doesn't replay it).
+  const [showSplash, setShowSplash] = useState(() => {
+    if (parseHash() !== null) return false // deep-links (viewer, etc.) skip it
+    try {
+      if (sessionStorage.getItem('sh-splash-seen')) return false
+      sessionStorage.setItem('sh-splash-seen', '1')
+    } catch { /* storage blocked — just show it */ }
+    return true
+  })
 
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); setRemoteWish(null); setStatus('idle') }
@@ -63,5 +75,10 @@ export default function App() {
     return <Viewer wish={remoteWish} code={route.code} />
   }
   if (route?.type === 'inline' && route.wish) return <Viewer wish={route.wish} />
-  return <Wizard />
+  return (
+    <>
+      {showSplash && <Splash onDone={() => setShowSplash(false)} />}
+      <Wizard />
+    </>
+  )
 }

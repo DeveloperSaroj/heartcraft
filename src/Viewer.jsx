@@ -11,7 +11,7 @@ import { supabaseEnabled } from './config.js'
 // recipient; ambient ones auto-advance (tap skips).
 // "tap to skip" scenes auto-advance after 5s; interactive scenes get a
 // generous fallback so nobody is ever stuck.
-const DURATIONS = { intro: 5000, headline: 5000, cake: 14000, photo: 5000, boxes: 20000 }
+const DURATIONS = { intro: 5000, headline: 5000, cake: 14000, photo: 5000, boxes: 20000, distance: 9000, reunion: 8000 }
 
 function Particles({ kind, accent }) {
   const items = useMemo(
@@ -229,7 +229,7 @@ function FlowerShower() {
 }
 
 // Interactive cake: tap each flame (or blow into the mic) to put candles out.
-function CakeScene({ cake, line, onDone }) {
+function CakeScene({ cake, line, wishFollows, onDone }) {
   const [lit, setLit] = useState([true, true, true])
   const [micOn, setMicOn] = useState(false)
   const micRef = useRef(null)
@@ -288,7 +288,7 @@ function CakeScene({ cake, line, onDone }) {
       {allOut && <FlowerShower />}
       <div className="cake-float"><Cake colors={cake.colors} lit={lit} onBlow={blow} /></div>
       {allOut ? (
-        <p className="line pop">✨ Wish made! It’s on its way... ✨</p>
+        <p className="line pop">{wishFollows ? '✨ Wish made! It’s on its way... ✨' : '✨ Made with love, just for you ✨'}</p>
       ) : (
         <>
           <p className="line fade-late">{line}</p>
@@ -432,8 +432,8 @@ function VintageLetter({ text, voice, onDone }) {
           {stage === 'open' && <Typewriter text={text} speed={40} />}
         </div>
         {stage !== 'open' && (
-          <button className="wax-seal" onClick={open} aria-label="open the letter">
-            <span>S♥H</span>
+          <button className="wax-seal" onClick={open} aria-label="tap to open the letter">
+            <span className="seal-word">tap</span>
           </button>
         )}
       </div>
@@ -570,6 +570,76 @@ function Countdown({ name, target, onUnlock }) {
   )
 }
 
+// Miss You — a heart flies across a little map from one city to the other.
+function DistanceScene({ from, to, onDone }) {
+  const arc = 'M60 150 Q200 30 340 150'
+  return (
+    <div className="scene distance-scene" onClick={(e) => e.stopPropagation()}>
+      <h2 className="line pop">The miles between us 🗺️</h2>
+      <div className="distance-map">
+        <svg viewBox="0 0 400 200" className="distance-svg">
+          <path d={arc} className="distance-arc" />
+          <g className="distance-pin"><circle cx="60" cy="150" r="7" /></g>
+          <g className="distance-pin"><circle cx="340" cy="150" r="7" /></g>
+          <text x="60" y="178" className="distance-city" textAnchor="middle">{from}</text>
+          <text x="340" y="178" className="distance-city" textAnchor="middle">{to}</text>
+          <text className="distance-heart" fontSize="22">
+            💗
+            <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" path={arc} />
+          </text>
+        </svg>
+      </div>
+      <p className="line fade-late">So far apart... yet you’re always right here 🤍</p>
+      <button className="btn primary continue-btn fade-late" onClick={onDone}>Continue →</button>
+    </div>
+  )
+}
+
+// Miss You — live countdown to the reunion date.
+function ReunionScene({ dateStr, onDone }) {
+  const target = useMemo(() => {
+    const d = new Date(`${dateStr}T00:00:00`)
+    return isNaN(d) ? 0 : d.getTime()
+  }, [dateStr])
+  const [left, setLeft] = useState(target - Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setLeft(target - Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [target])
+  const past = left <= 0
+  const s = Math.max(0, Math.floor(left / 1000))
+  const parts = [
+    { v: Math.floor(s / 86400), l: 'days' },
+    { v: Math.floor((s % 86400) / 3600), l: 'hours' },
+    { v: Math.floor((s % 3600) / 60), l: 'mins' },
+    { v: s % 60, l: 'secs' },
+  ]
+  return (
+    <div className="scene" onClick={(e) => e.stopPropagation()}>
+      {past ? (
+        <>
+          <div className="gift pop">🫂</div>
+          <h1 className="line">The wait is over — we meet again 🤍</h1>
+        </>
+      ) : (
+        <>
+          <div className="gift pop">💗</div>
+          <h1 className="line">Until I hold you again...</h1>
+          <div className="countdown-row">
+            {parts.map((p) => (
+              <div className="countdown-cell" key={p.l}>
+                <span className="countdown-num">{String(p.v).padStart(2, '0')}</span>
+                <span className="countdown-label">{p.l}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <button className="btn primary continue-btn fade-late" onClick={onDone}>Continue →</button>
+    </div>
+  )
+}
+
 const MONTH_INDEX = { January: 0, February: 1, March: 2, April: 3, May: 4, June: 5, July: 6, August: 7, September: 8, October: 9, November: 10, December: 11 }
 
 // Next occurrence of the wish's month/day at local midnight.
@@ -584,14 +654,18 @@ function nextOccurrence(month, day) {
 
 export default function Viewer({ wish, code }) {
   const scenes = useMemo(() => {
-    const s = ['gate', 'intro', 'headline', 'cake']
+    const isMiss = wish.occasion === 'missyou'
+    const s = ['gate', 'intro', 'headline']
+    if (!isMiss) s.push('cake') // cake feels wrong for "miss you"
+    if (isMiss && wish.fromCity?.trim() && wish.toCity?.trim()) s.push('distance')
+    if (isMiss && wish.reunionDate) s.push('reunion')
     if (wish.occasion === 'birthday' && wish.wishes?.some((w) => w?.trim())) s.push('balloons')
     if (wish.photos?.length || wish.photo) s.push('photo')
-    s.push('boxes')
+    if (!isMiss) s.push('boxes')
     if (wish.scratch?.trim()) s.push('scratch')
     s.push('letter', 'finale')
     return s
-  }, [wish.photo, wish.photos, wish.occasion, wish.wishes, wish.scratch])
+  }, [wish.photo, wish.photos, wish.occasion, wish.wishes, wish.scratch, wish.fromCity, wish.toCity, wish.reunionDate])
 
   const [i, setI] = useState(0)
   const [leaving, setLeaving] = useState(false)
@@ -687,7 +761,15 @@ export default function Viewer({ wish, code }) {
       )}
 
       {scene === 'cake' && (
-        <CakeScene cake={cake} line={copy.cakeLine} onDone={next} />
+        <CakeScene cake={cake} line={copy.cakeLine} wishFollows={scenes.includes('balloons')} onDone={next} />
+      )}
+
+      {scene === 'distance' && (
+        <DistanceScene from={wish.fromCity} to={wish.toCity} onDone={next} />
+      )}
+
+      {scene === 'reunion' && (
+        <ReunionScene dateStr={wish.reunionDate} onDone={next} />
       )}
 
       {scene === 'balloons' && (
@@ -740,7 +822,7 @@ export default function Viewer({ wish, code }) {
         )
       )}
 
-      {!['gate', 'letter', 'finale', 'balloons', 'boxes', 'scratch', 'cake'].includes(scene) && (
+      {!['gate', 'letter', 'finale', 'balloons', 'boxes', 'scratch', 'cake', 'distance', 'reunion'].includes(scene) && (
         <div className="tap-hint">tap to skip</div>
       )}
     </div>

@@ -137,10 +137,10 @@ function CardGrid({ items, value, onPick }) {
   )
 }
 
-function rememberWish(code, wish) {
+function rememberWish(code, token, wish) {
   try {
     const mine = JSON.parse(localStorage.getItem('hc-my-wishes') || '[]')
-    mine.unshift({ code, name: wish.name, occasion: wish.occasion, ts: Date.now() })
+    mine.unshift({ code, delToken: token, name: wish.name, occasion: wish.occasion, ts: Date.now() })
     localStorage.setItem('hc-my-wishes', JSON.stringify(mine.slice(0, 100)))
   } catch { /* storage unavailable */ }
 }
@@ -150,6 +150,7 @@ export default function Wizard() {
   const [wish, setWish] = useState({
     name: '', month: '', day: '', locked: false,
     occasion: '', cake: '', bond: '', vibe: '', letter: '', scratch: '', voice: '', photos: [],
+    fromCity: '', toCity: '', reunionDate: '',
     wishes: [
       'May all your dreams come true ✨',
       'A year full of laughter 😄',
@@ -215,16 +216,19 @@ export default function Wizard() {
       valid: !!wish.occasion,
       body: <CardGrid items={OCCASIONS} value={wish.occasion} onPick={set('occasion')} />,
     },
-    {
-      title: 'Pick a cake 🎂',
-      valid: !!wish.cake,
-      body: <CardGrid items={CAKES} value={wish.cake} onPick={set('cake')} />,
-    },
-    {
-      title: `What’s your bond with ${wish.name || 'them'}?`,
-      valid: !!wish.bond,
-      body: <CardGrid items={BONDS} value={wish.bond} onPick={set('bond')} />,
-    },
+    // Cake & bond don't fit a "miss you" — skip both for that occasion.
+    ...(wish.occasion === 'missyou' ? [] : [
+      {
+        title: 'Pick a cake 🎂',
+        valid: !!wish.cake,
+        body: <CardGrid items={CAKES} value={wish.cake} onPick={set('cake')} />,
+      },
+      {
+        title: `What’s your bond with ${wish.name || 'them'}?`,
+        valid: !!wish.bond,
+        body: <CardGrid items={BONDS} value={wish.bond} onPick={set('bond')} />,
+      },
+    ]),
     {
       title: 'Choose the vibe ✨',
       valid: !!wish.vibe,
@@ -249,6 +253,31 @@ export default function Wizard() {
               />
             </div>
           ))}
+        </>
+      ),
+    }] : []),
+    ...(wish.occasion === 'missyou' ? [{
+      title: 'The miles between you 🗺️',
+      valid: wish.fromCity.trim() && wish.toCity.trim(),
+      body: (
+        <>
+          <p className="field-hint">They’ll see a little heart fly across the map from your city to theirs. 🤍</p>
+          <label className="field-label">Your city</label>
+          <input
+            className="text-input" placeholder="e.g. Bhubaneswar" value={wish.fromCity}
+            maxLength={40} onChange={(e) => set('fromCity')(e.target.value)}
+          />
+          <label className="field-label">Their city</label>
+          <input
+            className="text-input" placeholder="e.g. Bengaluru" value={wish.toCity}
+            maxLength={40} onChange={(e) => set('toCity')(e.target.value)}
+          />
+          <label className="field-label">Reunion date 🗓️ (optional)</label>
+          <input
+            className="text-input" type="date" value={wish.reunionDate}
+            onChange={(e) => set('reunionDate')(e.target.value)}
+          />
+          <p className="field-hint" style={{ marginTop: 6 }}>Add the day you’ll meet again and they’ll see a live countdown to it.</p>
         </>
       ),
     }] : []),
@@ -328,11 +357,11 @@ export default function Wizard() {
     setSaveError('')
     setSaving(true)
     try {
-      const code = await saveWish(wish)
+      const { code, token } = await saveWish(wish)
       const base = window.location.origin + window.location.pathname
       const su = `${base}#/w/${code}`
       setShortUrl(su)
-      rememberWish(code, wish)
+      rememberWish(code, token, wish)
       trackEvent('created', { occasion: wish.occasion, wishCode: code })
       return su
     } catch {

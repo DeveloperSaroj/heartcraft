@@ -13,6 +13,11 @@ export function shortCode(len = 8) {
   return [...arr].map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('')
 }
 
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 // Upload a data-URL asset to the public "photos" bucket; returns its public URL.
 export async function uploadAsset(dataUrl, path, contentType) {
   const blob = await (await fetch(dataUrl)).blob()
@@ -27,6 +32,7 @@ export async function uploadAsset(dataUrl, path, contentType) {
 
 export async function saveWish(wish) {
   const code = shortCode()
+  const token = shortCode(24) // secret; kept only on the creator's device
   const payload = { ...wish }
   if (payload.photos?.length) {
     payload.photos = await Promise.all(
@@ -38,13 +44,31 @@ export async function saveWish(wish) {
   if (payload.voice?.startsWith('data:')) {
     payload.voice = await uploadAsset(payload.voice, `${code}-voice.webm`, 'audio/webm')
   }
+  // Tag where this wish was created (localhost = dev, smileheart.in = prod)
+  // so requests can be told apart in the DB. Harmless metadata; viewer ignores it.
+  payload._host = window.location.hostname
+  payload._createdAt = new Date().toISOString()
+  const delete_hash = await sha256Hex(token)
   const res = await fetch(`${SUPABASE_URL}/rest/v1/wishes`, {
     method: 'POST',
     headers: { ...headers(), 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify({ short_code: code, payload }),
+    body: JSON.stringify({ short_code: code, payload, delete_hash }),
   })
   if (!res.ok) throw new Error(`save failed: ${res.status}`)
-  return code
+  return { code, token }
+}
+
+// Permanently delete a wish — only works with the secret token the creator
+// stored on their device. Returns true if a row was actually removed.
+export async function deleteWish(code, token) {
+  if (!token) return false
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_wish`, {
+    method: 'POST',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_code: code, p_token: token }),
+  })
+  if (!res.ok) throw new Error(`delete failed: ${res.status}`)
+  return res.json()
 }
 
 export async function loadWish(code) {

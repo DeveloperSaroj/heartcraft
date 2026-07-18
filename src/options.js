@@ -3,11 +3,11 @@ export const OCCASIONS = [
   { id: 'anniversary', label: 'Anniversary',     emoji: '💞', tagline: 'Celebrate your journey together' },
   { id: 'apology',     label: 'Apology',         emoji: '🥺', tagline: 'Say sorry from the heart' },
   { id: 'propose',     label: 'Propose',         emoji: '💍', tagline: 'Pop the question in style' },
+  { id: 'missyou',     label: 'Miss You',        emoji: '🫂', tagline: 'Say “I miss you” across the miles' },
   { id: 'mothersday',  label: 'Mother’s Day',    emoji: '🌷', tagline: 'For the world’s best mom' },
   { id: 'fathersday',  label: 'Father’s Day',    emoji: '🦸', tagline: 'For your first superhero' },
   { id: 'rakhi',       label: 'Raksha Bandhan',  emoji: '🪢', tagline: 'A bond beyond words' },
   { id: 'diwali',      label: 'Diwali',          emoji: '🪔', tagline: 'Light up their festival' },
-  { id: 'newyear',     label: 'New Year',        emoji: '🎆', tagline: 'Begin the year with love' },
   { id: 'farewell',    label: 'Farewell',        emoji: '👋', tagline: 'Goodbyes done beautifully' },
   { id: 'congrats',    label: 'Congratulations', emoji: '🏆', tagline: 'Cheer their big win' },
   { id: 'getwell',     label: 'Get Well Soon',   emoji: '🤗', tagline: 'Send healing hugs' },
@@ -131,6 +131,13 @@ export const OCCASION_COPY = {
     headline: (n) => `Get well soon, ${n}! 🤗`,
     cakeLine: 'Sweetness is the best medicine...',
     finale: 'Rest up — the world needs your smile 💛',
+  },
+  missyou: {
+    intro: (n) => `${n}...`,
+    intro2: 'Distance is just a test of how far love can travel 🤍',
+    headline: (n) => `I miss you, ${n} 🫂`,
+    cakeLine: '',
+    finale: 'Come back soon — I’ll be right here 🤍',
   },
 }
 
