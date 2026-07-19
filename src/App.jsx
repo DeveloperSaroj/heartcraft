@@ -3,10 +3,27 @@ import Wizard from './Wizard.jsx'
 import Viewer from './Viewer.jsx'
 import MyWishes from './MyWishes.jsx'
 import Splash from './Splash.jsx'
+import ComingSoon, { LAUNCH_TS } from './ComingSoon.jsx'
 import { PrivacyPolicy, TermsOfUse } from './Legal.jsx'
 import { decodeWish } from './encode.js'
 import { loadWish } from './supabase.js'
 import { trackEvent } from './analytics.js'
+
+// Pre-launch gate: on the real site (not localhost) the whole app shows
+// "Coming Soon" until launch — so no wishes can be created before 20 July.
+// localhost is never gated (so videos/demos can be made locally), and
+// `#/app` on prod sets a bypass for final pre-launch testing.
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+function launchGateActive() {
+  if (window.location.hash === '#/soon') return true // manual preview of the teaser
+  if (IS_LOCAL) return false
+  if (Date.now() >= LAUNCH_TS) return false
+  try {
+    if (window.location.hash === '#/app') { sessionStorage.setItem('sh-bypass', '1') }
+    if (sessionStorage.getItem('sh-bypass')) return false
+  } catch { /* ignore */ }
+  return true
+}
 
 // Hash routing:
 //   #/w/<code>     — short link, wish stored in the database
@@ -61,6 +78,13 @@ export default function App() {
       .catch(() => { if (!cancelled) setStatus('error') })
     return () => { cancelled = true }
   }, [route])
+
+  // Privacy/Terms stay reachable (footer links); everything else → Coming Soon.
+  if (launchGateActive()) {
+    if (route?.type === 'privacy') return <PrivacyPolicy />
+    if (route?.type === 'terms') return <TermsOfUse />
+    return <ComingSoon />
+  }
 
   if (route?.type === 'mine') return <MyWishes />
   if (route?.type === 'privacy') return <PrivacyPolicy />

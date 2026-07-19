@@ -802,3 +802,73 @@ h1.line { font-family: 'Dancing Script', cursive; font-size: clamp(2.2rem, 6vw, 
 .distance-pin { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
 .distance-city { fill: #fff; font-size: 15px; font-weight: 700; font-family: 'Quicksand', sans-serif; }
 .distance-heart { filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4)); }
+
+/* ============================================================
+   Coming Soon — pre-launch teaser landing
+   ============================================================ */
+.coming-soon {
+  position: relative; min-height: 100vh; overflow-x: hidden; color: #fff;
+  background:
+    radial-gradient(circle at 50% 12%, #c2379b 0%, transparent 58%),
+    radial-gradient(circle at 85% 88%, rgba(255,180,90,0.25) 0%, transparent 44%),
+    linear-gradient(165deg, #3b0f35 0%, #1d0a3d 55%, #120420 100%);
+}
+.cs-hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.cs-heart { position: absolute; bottom: -8%; animation: cs-rise linear infinite; opacity: 0; }
+@keyframes cs-rise {
+  0% { transform: translateY(0) rotate(-6deg); opacity: 0; }
+  12% { opacity: .85; }
+  100% { transform: translateY(-116vh) rotate(8deg); opacity: 0; }
+}
+.cs-inner {
+  position: relative; z-index: 1; max-width: 640px; margin: 0 auto;
+  padding: 40px 22px 48px; display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.cs-medallion { position: relative; width: 132px; height: 132px; margin-bottom: 18px;
+  animation: pop-in .9s cubic-bezier(.2,1.5,.35,1) both; }
+.cs-medallion img { position: relative; z-index: 2; width: 100%; height: 100%; border-radius: 50%;
+  background: #fff; padding: 8px; box-sizing: border-box; box-shadow: 0 14px 40px rgba(0,0,0,0.5); }
+.cs-ring { position: absolute; inset: -11px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #ff8fc4, #b06ef0, #ffd166, #ff8fc4);
+  filter: blur(3px); animation: ring-spin 3.4s linear infinite;
+  -webkit-mask: radial-gradient(circle, transparent 60%, #000 62%); mask: radial-gradient(circle, transparent 60%, #000 62%); }
+.cs-title { font-family: 'Dancing Script', cursive; font-size: clamp(3rem, 13vw, 4.6rem); font-weight: 700; line-height: 1; text-shadow: 0 4px 24px rgba(0,0,0,.4); }
+.cs-tagline { color: #ffe3f0; margin-top: 6px; font-size: clamp(.9rem, 3.6vw, 1.1rem); }
+.cs-badge { margin-top: 20px; padding: 9px 22px; border-radius: 999px; font-weight: 700; letter-spacing: .5px;
+  background: rgba(255,255,255,.95); color: #8a2f9e; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+
+.cs-countdown { display: flex; gap: 12px; justify-content: center; margin: 26px 0 4px; flex-wrap: wrap; }
+.cs-cell { display: flex; flex-direction: column; align-items: center; min-width: 72px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 14px 10px; backdrop-filter: blur(6px); }
+.cs-num { font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cs-lbl { font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; opacity: .7; }
+
+.cs-about { margin: 28px 0 6px; max-width: 520px; line-height: 1.65; font-size: 1.02rem; color: #f6e2f2; }
+.cs-about b { color: #fff; }
+.cs-features { display: flex; flex-direction: column; gap: 10px; margin: 18px 0 6px; width: 100%; max-width: 460px; }
+.cs-feature { display: flex; align-items: center; gap: 12px; text-align: left;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 12px 16px; }
+.cs-feature span { font-size: 1.5rem; }
+.cs-feature p { font-size: .92rem; line-height: 1.4; }
+
+.cs-gallery { display: flex; gap: 14px; overflow-x: auto; width: 100%; padding: 24px 6px 12px;
+  justify-content: safe center; scroll-padding: 0 14px; -webkit-overflow-scrolling: touch; }
+.cs-shot { flex: 0 0 auto; margin: 0; transform: rotate(var(--tilt, 0deg)); }
+.cs-shot img { height: clamp(200px, 34vh, 300px); width: auto; border-radius: 14px; display: block;
+  box-shadow: 0 16px 44px rgba(0,0,0,.5); border: 3px solid rgba(255,255,255,.85); }
+.cs-shot figcaption { margin-top: 8px; font-size: .8rem; opacity: .8; }
+
+.cs-react { margin-top: 30px; }
+.cs-react-title { font-size: 1rem; margin-bottom: 12px; opacity: .95; }
+.cs-react-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cs-emoji { position: relative; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.2);
+  border-radius: 16px; padding: 10px 14px; cursor: pointer; transition: all .18s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cs-emoji:hover:not(:disabled) { transform: translateY(-3px) scale(1.08); background: rgba(255,255,255,.18); }
+.cs-emoji.picked { border-color: #fff; background: rgba(255,255,255,.22); }
+.cs-emoji:disabled { cursor: default; }
+.cs-emoji-glyph { font-size: 1.9rem; }
+.cs-emoji-count { font-size: .78rem; font-weight: 700; opacity: .9; font-variant-numeric: tabular-nums; }
+
+.cs-footer { margin-top: 38px; font-size: .82rem; opacity: .75; line-height: 1.9; }
+.cs-footer a { color: #ffd9ec; text-decoration: underline; }
+.cs-legal a { color: #e9d6f0; }

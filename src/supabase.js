@@ -111,3 +111,33 @@ export async function fetchStats(codes) {
     reactions: rRes.ok ? await rRes.json() : [],
   }
 }
+
+// Pre-launch "Coming Soon" emoji reactions.
+export const LAUNCH_EMOJIS = ['😍', '❤️', '🎉', '🥳', '🔥']
+
+export async function addLaunchReaction(emoji) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/add_launch_reaction`, {
+    method: 'POST',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_emoji: emoji }),
+  })
+  if (!res.ok) throw new Error(`launch reaction failed: ${res.status}`)
+}
+
+// Exact count per emoji via one HEAD request each (Content-Range total).
+export async function fetchLaunchReactionCounts() {
+  const out = {}
+  await Promise.all(
+    LAUNCH_EMOJIS.map(async (em) => {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/launch_reactions?select=id&emoji=eq.${encodeURIComponent(em)}`,
+          { method: 'HEAD', headers: { ...headers(), Prefer: 'count=exact', Range: '0-0' } }
+        )
+        const cr = res.headers.get('content-range') || '*/0'
+        out[em] = parseInt(cr.split('/')[1], 10) || 0
+      } catch { out[em] = 0 }
+    })
+  )
+  return out
+}
